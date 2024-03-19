@@ -24,7 +24,9 @@
       <div class="nav-top">
         <div class="nav-left">
           <fold class="menu-fold" @click="isCollapse = !isCollapse"></fold>
-          <div class="bread">面包屑</div>
+          <div class="bread">
+            <breadcrumb />
+          </div>
         </div>
         <div class="user-info">
           <el-badge :is-dot="true" class="user-badge">
@@ -60,9 +62,10 @@
 </template>
 
 <script>
+import Breadcrumb from "./Breadcrumb.vue";
 import TreeMenu from "./TreeMenu.vue";
 export default {
-  components: { TreeMenu },
+  components: { TreeMenu, Breadcrumb },
   data() {
     return {
       userInfo: this.$store.state.userInfo,

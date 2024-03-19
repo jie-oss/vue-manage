@@ -34,9 +34,6 @@ export default {
       },
     },
   },
-  mounted() {
-    console.log("git分支测试");
-  },
 };
 </script>
 

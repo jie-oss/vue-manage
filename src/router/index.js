@@ -14,12 +14,30 @@ const routes = [
     children: [
       {
         name: 'welcome',
-        path: '/welcome',
+        path: 'welcome',
         meta: {
           title: '欢迎页'
         },
         component: () => import('../views/Welcome.vue'),
       },
+      {
+        name: 'system',
+        path: 'system',
+        meta: {
+          title: '系统管理'
+        },
+        component: () => import('../views/Welcome.vue'),
+        children: [
+          {
+            name: 'user',
+            path: 'user',
+            meta: {
+              title: '用户管理'
+            },
+            component: () => import('../views/Welcome.vue'),
+          }
+        ]
+      }
 
     ],
   },
