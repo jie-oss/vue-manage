@@ -34,10 +34,6 @@ export default {
       },
     },
   },
-  mounted() {
-    console.log("@@@@");
-    console.log("!!!!!");
-  },
 };
 </script>
 
