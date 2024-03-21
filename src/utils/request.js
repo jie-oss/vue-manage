@@ -28,7 +28,7 @@ service.interceptors.response.use((res) => {
   const { data, code, msg } = res.data
   if (code === 200) {
     return data
-  } else if (code === 5001) {
+  } else if (code === 50001) {
     ElMessage.error(TOKEN_ERROR)
     setTimeout(() => {
       router.push('/login')
@@ -47,13 +47,14 @@ function request(options) {
     // 统一一下 属性是data
     options.params = options.data
   }
+  let isMock = config.mock
   if (typeof options.mock !== 'undefined') {
-    config.mock = options.mock
+    isMock = options.mock
   }
   if (config.env === 'prod') {
     service.defaults.baseURL = config.baseApi
   } else {
-    service.defaults.baseURL = config.mock ? config.mockApi : config.baseApi
+    service.defaults.baseURL = isMock ? config.mockApi : config.baseApi
   }
   return service(options)
 }

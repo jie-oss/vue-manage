@@ -151,6 +151,7 @@
 
 <script>
 import { ref, onMounted, reactive, getCurrentInstance, toRaw } from "vue";
+import dayjs from "dayjs";
 
 export default {
   name: "User",
@@ -246,6 +247,12 @@ export default {
     const getUserList = async () => {
       let params = { ...user, ...pager };
       const { page, list } = await proxy.$api.userList(params);
+      list.forEach((item) => {
+        item.createTime = dayjs(item.createTime).format("YYYY-MM-DD hh:mm:ss");
+        item.lastLoginTime = dayjs(item.lastLoginTime).format(
+          "YYYY-MM-DD hh:mm:ss"
+        );
+      });
       userList.value = list;
       pager.total = page.total;
     };
@@ -271,7 +278,7 @@ export default {
       const res = await proxy.$api.userDelete({
         userIds: [row.userId],
       });
-      if (res.nModified > 0) {
+      if (res.modifiedCount > 0) {
         proxy.$message.success("删除成功");
         getUserList();
       } else {
@@ -289,7 +296,7 @@ export default {
       const res = await proxy.$api.userDelete({
         userIds: checkedUsersIds.value,
       });
-      if (res.nModified > 0) {
+      if (res.modifiedCount > 0) {
         proxy.$message.success("删除成功");
         getUserList();
       } else {
