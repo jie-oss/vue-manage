@@ -29,7 +29,7 @@
           </div>
         </div>
         <div class="user-info">
-          <el-badge :is-dot="true" class="user-badge">
+          <el-badge :is-dot="noticeCount" class="user-badge">
             <!-- <el-icon class="el-icon-bell"><bell /></el-icon> -->
             <i class="el-icon-bell"></i>
           </el-badge>
@@ -53,9 +53,7 @@
       </div>
       <!-- 内容 -->
       <div class="wrapper">
-        <div class="main-page">
-          <router-view></router-view>
-        </div>
+        <router-view></router-view>
       </div>
     </div>
   </div>
@@ -70,7 +68,7 @@ export default {
     return {
       userInfo: this.$store.state.userInfo,
       isCollapse: false,
-      noticeCount: 0,
+      noticeCount: false,
       menuList: [],
     };
   },
@@ -79,11 +77,11 @@ export default {
       if (key === "email") return;
       this.$store.commit("saveUserInfo", "");
       this.userInfo = null;
-      this.$router.push("./login");
+      this.$router.push("/login");
     },
     async getNoticeCount() {
       const res = await this.$api.noticeCount();
-      this.noticeCount = res;
+      this.noticeCount = res ? true : false;
     },
     async getMenuList() {
       const res = await this.$api.menuList();

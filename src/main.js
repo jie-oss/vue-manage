@@ -10,7 +10,7 @@ import store from './store'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 const app = createApp(App)
-app.use(ElementPlus)
+app.use(ElementPlus, { size: "small" })
 app.use(router)
 app.use(store)
 

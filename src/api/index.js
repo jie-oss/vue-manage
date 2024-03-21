@@ -5,7 +5,7 @@ export default {
       url: "/users/login",
       method: 'post',
       data: params,
-      mock: true
+      mock: false
     })
   },
   noticeCount() {
@@ -13,7 +13,7 @@ export default {
       url: '/leave/count',
       method: 'get',
       data: {},
-      mock: true
+      mock: false
     })
   },
   menuList() {
@@ -21,6 +21,46 @@ export default {
       url: '/menu/list',
       method: 'get',
       data: {},
+      mock: true
+    })
+  },
+  userList(params) {
+    return request({
+      url: '/users/list',
+      method: 'get',
+      data: params,
+      mock: true
+    })
+  },
+  userDelete(params) {
+    return request({
+      url: '/users/delete',
+      method: 'post',
+      data: params,
+      mock: true
+    })
+  },
+  getRoleList() {
+    return request({
+      url: '/roles/allList',
+      method: 'get',
+      data: {},
+      mock: true
+    })
+  },
+  getDepList() {
+    return request({
+      url: '/dept/list',
+      method: 'get',
+      data: {},
+      mock: true
+    })
+  },
+  userSubmit(params) {
+    return request({
+      url: '/users/operate',
+      method: 'post',
+      data: params,
       mock: true
     })
   }

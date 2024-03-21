@@ -21,25 +21,14 @@ const routes = [
         component: () => import('../views/Welcome.vue'),
       },
       {
-        name: 'system',
-        path: 'system',
+        name: 'user',
+        path: '/system/user',
         meta: {
-          title: '系统管理'
+          title: '用户管理'
         },
-        component: () => import('../views/Welcome.vue'),
-        children: [
-          {
-            name: 'user',
-            path: 'user',
-            meta: {
-              title: '用户管理'
-            },
-            component: () => import('../views/Welcome.vue'),
-          }
-        ]
-      }
-
-    ],
+        component: () => import('../views/User.vue'),
+      },
+    ]
   },
   {
     name: 'login',
