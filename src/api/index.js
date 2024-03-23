@@ -24,11 +24,27 @@ export default {
       mock: false
     })
   },
+  permissionList() {
+    return request({
+      url: '/users/getPremissionList',
+      method: 'get',
+      data: {},
+      mock: false
+    })
+  },
   userList(params) {
     return request({
       url: '/users/list',
       method: 'get',
       data: params,
+      mock: false
+    })
+  },
+  userAllList() {
+    return request({
+      url: '/users/all/list',
+      method: 'get',
+      data: {},
       mock: false
     })
   },
@@ -91,6 +107,22 @@ export default {
   updataPermission(params) {
     return request({
       url: '/roles/update/permission',
+      method: 'post',
+      data: params,
+      mock: false
+    })
+  },
+  deptList(params) {
+    return request({
+      url: '/dept/list',
+      method: 'get',
+      data: params,
+      mock: false
+    })
+  },
+  deptOperate(params) {
+    return request({
+      url: '/dept/operate',
       method: 'post',
       data: params,
       mock: false

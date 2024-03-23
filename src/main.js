@@ -23,4 +23,19 @@ app.config.globalProperties.$request = request
 app.config.globalProperties.$storage = storage
 app.config.globalProperties.$api = api
 
+// 自定义指令
+app.directive('has', {
+  beforeMount: (el, binding) => {
+    let userAction = storage.getItem('actionList')
+    let value = binding.value
+    let hasPermission = userAction.includes(value)
+    if (!hasPermission) {
+      el.style.display = 'none'
+      setTimeout(() => {
+        el.parentNode.removeChild(el)
+      })
+    }
+  }
+})
+
 app.mount('#app')

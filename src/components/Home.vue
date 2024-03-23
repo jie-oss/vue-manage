@@ -75,7 +75,9 @@ export default {
   methods: {
     handleLogout(key) {
       if (key === "email") return;
-      this.$store.commit("saveUserInfo", "");
+      this.$store.commit("saveUserInfo", {});
+      this.$store.commit("saveMenuList", []);
+      this.$store.commit("saveActionList", []);
       this.userInfo = null;
       this.$router.push("/login");
     },
@@ -84,8 +86,10 @@ export default {
       this.noticeCount = res ? true : false;
     },
     async getMenuList() {
-      const res = await this.$api.menuList();
-      this.menuList = res;
+      const { menuList, actionList } = await this.$api.permissionList();
+      this.menuList = menuList;
+      this.$store.commit("saveMenuList", menuList);
+      this.$store.commit("saveActionList", actionList);
     },
   },
   mounted() {

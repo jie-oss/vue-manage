@@ -9,7 +9,9 @@
           ></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleQuery">查询</el-button>
+          <el-button type="primary" @click="handleQuery" v-has="'role-query'"
+            >查询</el-button
+          >
         </el-form-item>
         <el-form-item>
           <el-button @click="handleReset('form')">重置</el-button>
@@ -18,7 +20,9 @@
     </div>
     <div class="base-table">
       <div class="action">
-        <el-button type="primary" @click="handleAdd">创建</el-button>
+        <el-button type="primary" @click="handleAdd" v-has="'role-create'"
+          >创建</el-button
+        >
       </div>
       <el-table :data="roleList" style="width: 100%" row-key="_id">
         <el-table-column
@@ -36,9 +40,14 @@
               size="mini"
               type="primary"
               @click="handleEdit(scope.row)"
+              v-has="'role-edit'"
               >编辑</el-button
             >
-            <el-button link size="mini" @click="handlePermission(scope.row)"
+            <el-button
+              link
+              size="mini"
+              @click="handlePermission(scope.row)"
+              v-has="'role-setting'"
               >设置权限</el-button
             >
             <el-button
@@ -46,6 +55,7 @@
               type="danger"
               size="small"
               @click="handleDelete(scope.row._id)"
+              v-has="'role-delete'"
               >删除</el-button
             >
           </template>
