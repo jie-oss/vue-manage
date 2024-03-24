@@ -61,10 +61,38 @@ const routes = [
       title: '登录页'
     },
     component: () => import('../views/Login.vue'),
+  },
+  {
+    name: '404',
+    path: '/404',
+    meta: {
+      title: '404页面'
+    },
+    component: () => import('../views/404.vue')
   }
 ]
 
-export default createRouter({
+const router = createRouter({
   routes,
   history: createWebHashHistory()
 })
+
+function checkPermission(path) {
+  let hasPermission = router.getRoutes().filter(route => route.path == path).length
+  if (hasPermission) {
+    return true
+  } else {
+    return false
+  }
+}
+
+router.beforeEach((to, from, next) => {
+  if (checkPermission(to.path)) {
+    document.title = to.meta.title
+    next()
+  } else {
+    next('/404')
+  }
+})
+
+export default router
