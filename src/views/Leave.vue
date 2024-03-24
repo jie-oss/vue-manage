@@ -1,22 +1,15 @@
 <template>
   <div class="user-manage">
     <div class="query-form">
-      <el-form ref="form" :model="user" inline>
-        <el-form-item label="用户Id" prop="userId">
-          <el-input v-model="user.userId" placeholder="请输入用户id"></el-input>
-        </el-form-item>
-        <el-form-item label="用户名" prop="userName">
-          <el-input
-            v-model="user.userName"
-            placeholder="请输入用户名"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="状态" prop="state">
-          <el-select v-model="user.state">
-            <el-option :value="0" label="所有"></el-option>
-            <el-option :value="1" label="在职"></el-option>
-            <el-option :value="2" label="离职"></el-option>
-            <el-option :value="3" label="试用期"></el-option>
+      <el-form ref="form" :model="queryForm" inline>
+        <el-form-item label="审批状态" prop="applyState">
+          <el-select v-model="queryForm.applyState">
+            <el-option value="" label="全部"></el-option>
+            <el-option :value="1" label="待审批"></el-option>
+            <el-option :value="2" label="审批中"></el-option>
+            <el-option :value="3" label="审批拒绝"></el-option>
+            <el-option :value="4" label="审批通过"></el-option>
+            <el-option :value="5" label="作废"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -29,22 +22,9 @@
     </div>
     <div class="base-table">
       <div class="action">
-        <el-button type="primary" @click="handleCreate" v-has="'user-add'"
-          >新增</el-button
-        >
-        <el-button
-          type="danger"
-          @click="handlePatch"
-          v-has="'user-patch-delete'"
-          >批量删除</el-button
-        >
+        <el-button type="primary" @click="handleApply">申请休假</el-button>
       </div>
-      <el-table
-        :data="userList"
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" />
+      <el-table :data="applyList" style="width: 100%">
         <el-table-column
           v-for="item in columns"
           :prop="item.prop"
@@ -55,22 +35,8 @@
         />
         <el-table-column fixed="right" label="操作" width="150">
           <template #default="scope">
-            <el-button
-              link
-              type="primary"
-              size="mini"
-              @click="handleEdit(scope.row)"
-              v-has="'user-edit'"
-              >编辑</el-button
-            >
-            <el-button
-              link
-              type="danger"
-              size="small"
-              @click="handleDelete(scope.row)"
-              v-has="'user-delete'"
-              >删除</el-button
-            >
+            <el-button link type="primary" size="mini">查看</el-button>
+            <el-button link type="danger" size="small">作废</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -84,68 +50,57 @@
     </div>
 
     <el-dialog
-      :title="action == 'add' ? '用户新增' : '编辑用户'"
+      title="申请休假"
       v-model="showModal"
       :before-close="handleClose"
+      width="70%"
     >
       <el-form
-        :model="userForm"
+        :model="leaveForm"
         ref="dialogForm"
         label-width="100px"
         :rules="rules"
       >
-        <el-form-item prop="userName" label="用户名">
-          <el-input
-            placeholder="请输入用户名"
-            v-model="userForm.userName"
-            :disabled="action == 'edit'"
-          />
-        </el-form-item>
-        <el-form-item prop="userEmail" label="邮箱">
-          <el-input
-            placeholder="请输入邮箱"
-            v-model="userForm.userEmail"
-            :disabled="action == 'edit'"
-          >
-            <template #append>@outlook.com </template>
-          </el-input>
-        </el-form-item>
-        <el-form-item prop="mobile" label="手机号">
-          <el-input placeholder="请输入手机号" v-model="userForm.mobile" />
-        </el-form-item>
-        <el-form-item prop="job" label="岗位">
-          <el-input placeholder="请输入岗位" v-model="userForm.job" />
-        </el-form-item>
-        <el-form-item prop="state" label="状态">
-          <el-select v-model="userForm.state">
-            <el-option :value="1" label="在职"></el-option>
-            <el-option :value="2" label="离职"></el-option>
-            <el-option :value="3" label="试用期"></el-option>
+        <el-form-item prop="applyType" label="休假类型">
+          <el-select v-model="leaveForm.applyType">
+            <el-option :value="1" label="事假"></el-option>
+            <el-option :value="2" label="调休"></el-option>
+            <el-option :value="3" label="年假"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item prop="roleList" label="系统角色">
-          <el-select
-            v-model="userForm.roleList"
-            placeholder="请选择系统角色"
-            multiple
-            style="width: 100%"
-          >
-            <el-option
-              v-for="role in roleList"
-              :key="role._id"
-              :value="role._id"
-              :label="role.roleName"
-            ></el-option>
-          </el-select>
+        <el-form-item label="休假日期" required>
+          <el-col :span="8">
+            <el-form-item prop="startTime">
+              <el-date-picker
+                v-model="leaveForm.startTime"
+                type="date"
+                placeholder="请选择开始日期"
+                :disabled-date="disabledDate"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col class="text-center" :span="1">-</el-col>
+          <el-col :span="8">
+            <el-form-item prop="endTime">
+              <el-date-picker
+                v-model="leaveForm.endTime"
+                type="date"
+                placeholder="请选择结束日期"
+                :disabled-date="disabledDate"
+              />
+            </el-form-item>
+          </el-col>
         </el-form-item>
-        <el-form-item prop="deptId" label="部门">
-          <el-cascader
-            v-model="userForm.deptId"
-            placeholder="请选择部门"
-            :options="deptList"
-            :props="{ checkStrictly: true, value: '_id', label: 'deptName' }"
-            clearable
-          />
+        <el-form-item label="休假时长" prop="leaveTime">{{
+          leaveForm.leaveTime
+        }}</el-form-item>
+        <el-form-item label="休假原因" prop="reasons">
+          <el-input
+            type="textarea"
+            placeholder="请输入休假原因"
+            :row="3"
+            v-model="leaveForm.reasons"
+          ></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -159,90 +114,80 @@
 </template>
 
 <script>
-import { ref, onMounted, reactive, getCurrentInstance, toRaw } from "vue";
+import { ref, onMounted, reactive, getCurrentInstance, watchEffect } from "vue";
 import dayjs from "dayjs";
 
 export default {
-  name: "User",
+  name: "Leave",
   setup() {
-    onMounted(() => {
-      // 调用获取用户列表的方法
-      getUserList();
-      getRoleList();
-      getDepList();
-    });
     const { proxy } = getCurrentInstance();
     // 查找的数据
-    const user = reactive({
-      // userId: "",
-      // userName: "",
-      state: 0, // 0:所有 1：在职 2：离职 3：试用期
-      // pageNum: 1, // 当前页码
-      // pageSize: 10, // 每页条数，默认10
-    });
-    // 用户列表
-    const userList = ref([
-      {
-        state: 1,
-        role: "0",
-        roleList: [
-          "60180b07b1eaed6c45fbebdb",
-          "60150cb764de99631b2c3cd3",
-          "60180b59b1eaed6c45fbebdc",
-        ],
-        deptId: ["60167059c9027b7d2c520a61", "60167345c6a4417f2d27506f"],
-        userId: 1000002,
-        userName: "admin",
-        userEmail: "admin@jason.com",
-        createTime: "2021-01-17T13:32:06.381Z",
-        lastLoginTime: "2021-01-17T13:32:06.381Z",
-        __v: 0,
-        job: "前端架构师",
-        mobile: "17611020000",
-      },
-    ]);
+    const queryForm = reactive({ applyState: "" });
+    // 审批数据
+    const applyList = ref([]);
     // 表格列的配置
     const columns = reactive([
       {
-        label: "用户ID",
-        prop: "userId",
+        label: "申请单号",
+        prop: "orderNo",
       },
       {
-        label: "用户名",
-        prop: "userName",
+        label: "休假时间",
+        prop: "",
+        formatter(row) {
+          return (
+            dayjs(row.startTime).format("YYYY-MM-DD") +
+            "到" +
+            dayjs(row.endTime).format("YYYY-MM-DD")
+          );
+        },
       },
       {
-        label: "用户邮箱",
-        prop: "userEmail",
+        label: "休假时长",
+        prop: "leaveTime",
       },
       {
-        label: "用户角色",
-        prop: "role",
+        label: "休假类型",
+        prop: "applyType",
         formatter(row, column, value) {
           return {
-            0: "管理员",
-            1: "普通用户",
+            1: "事假",
+            2: "调休",
+            3: "年假",
           }[value];
         },
       },
       {
-        label: "用户状态",
-        prop: "state",
-        formatter(row, column, value) {
-          return {
-            1: "在职",
-            2: "离职",
-            3: "试用期",
-          }[value];
-        },
+        label: "休假原因",
+        prop: "reasons",
       },
       {
-        label: "注册时间",
+        label: "申请时间",
         prop: "createTime",
+        formatter(row, column, value) {
+          dayjs(value).format("YYYY--MM-DD");
+        },
       },
       {
-        label: "最后登陆时间",
-        prop: "lastLoginTime",
+        label: "审批人",
+        prop: "auditUsers",
+      },
+      {
+        label: "当前审批人",
+        prop: "curAuditUserName",
+      },
+      {
+        label: "审批状态",
+        prop: "applyState",
+        formatter(row, column, value) {
+          return {
+            1: "待审批",
+            2: "审批中",
+            3: "审批拒绝",
+            4: "审批通过",
+            5: "作废",
+          }[value];
+        },
       },
     ]);
     // 分页的配置
@@ -251,24 +196,37 @@ export default {
       pageSize: 10,
       total: 10,
     });
-
-    // 获取用户列表的方法
-    const getUserList = async () => {
-      let params = { ...user, ...pager };
-      const { page, list } = await proxy.$api.userList(params);
-      list.forEach((item) => {
-        item.createTime = dayjs(item.createTime).format("YYYY-MM-DD hh:mm:ss");
-        item.lastLoginTime = dayjs(item.lastLoginTime).format(
-          "YYYY-MM-DD hh:mm:ss"
-        );
-      });
-      userList.value = list;
-      pager.total = page.total;
+    // dialog是否显示
+    const showModal = ref(false);
+    // dialog表单数据
+    const leaveForm = reactive({
+      applyType: 1,
+      startTime: "",
+      endTime: "",
+      leaveTime: "0天",
+      reasons: "",
+    });
+    const action = ref("create");
+    const rules = {
+      applyType: [{ required: true }],
+      startTime: [
+        { required: true, message: "请选择起始时间", trigger: "blur" },
+      ],
+      endTime: [{ required: true, message: "请选择结束时间", trigger: "blur" }],
     };
 
-    // 查询的方法
-    const handleQuery = () => {
-      getUserList();
+    onMounted(() => {
+      getApplyList();
+    });
+
+    // 获取审批数据
+    const getApplyList = async () => {
+      const { list, page } = await proxy.$api.getApplyList({
+        ...pager,
+        ...queryForm,
+      });
+      pager.total = page.total;
+      applyList.value = list;
     };
 
     // 重置的方法
@@ -276,104 +234,20 @@ export default {
       proxy.$refs[form].resetFields();
     };
 
+    // 查询
+    const handleQuery = () => {
+      getApplyList();
+    };
+
+    // 申请休假
+    const handleApply = () => {
+      showModal.value = true;
+      action.value = "create";
+    };
+
     // 切换页码时对应的方法
     const handleCurrentChange = (current) => {
       pager.pageNum = current;
-      getUserList();
-    };
-
-    // 删除
-    const handleDelete = async (row) => {
-      const res = await proxy.$api.userDelete({
-        userIds: [row.userId],
-      });
-      if (res.modifiedCount > 0) {
-        proxy.$message.success("删除成功");
-        getUserList();
-      } else {
-        proxy.$message.error("删除失败");
-      }
-    };
-
-    // 批量删除
-    const checkedUsersIds = ref([]);
-    const handlePatch = async () => {
-      if (checkedUsersIds.value.length == 0) {
-        proxy.$message.error("请选择要删除的用户");
-        return;
-      }
-      const res = await proxy.$api.userDelete({
-        userIds: checkedUsersIds.value,
-      });
-      if (res.modifiedCount > 0) {
-        proxy.$message.success("删除成功");
-        getUserList();
-      } else {
-        proxy.$message.error("删除失败");
-      }
-    };
-
-    const handleSelectionChange = (list) => {
-      let arr = [];
-      list.forEach((item) => {
-        arr.push(item.userId);
-      });
-      checkedUsersIds.value = arr;
-    };
-
-    // dialog是否显示
-    const showModal = ref(false);
-
-    // dialog中表单数据
-    const userForm = reactive({
-      state: 1,
-    });
-
-    // dialog表单校验规则
-    const rules = reactive({
-      userName: [
-        {
-          required: true,
-          message: "请输入用户名称",
-          trigger: "blur",
-        },
-      ],
-      userEmail: [
-        {
-          required: true,
-          message: "请输入用户邮箱",
-          trigger: "blur",
-        },
-      ],
-      deptId: [
-        {
-          required: true,
-          message: "请选择用户部门",
-          trigger: "blur",
-        },
-      ],
-      // mobile: [
-      //   {
-      //     required: true,
-      //     pattern: /1[3-9]\d{9}/,
-      //     message: "请输入正确的手机号码",
-      //     trigger: "blur",
-      //   },
-      // ],
-    });
-
-    // 系统角色
-    const roleList = ref([]);
-    const getRoleList = async () => {
-      const res = await proxy.$api.getRoleList();
-      roleList.value = res;
-    };
-
-    // 部门
-    const deptList = ref([]);
-    const getDepList = async () => {
-      const res = await proxy.$api.getDepList();
-      deptList.value = res;
     };
 
     // 取消
@@ -382,68 +256,54 @@ export default {
       showModal.value = false;
     };
 
-    // 用来判断是新增还是编辑
-    const action = ref("add");
-
-    // 用户新增
-    const handleCreate = () => {
-      showModal.value = true;
-      action.value = "add";
-    };
-
     // 确认
     const handleSubmit = () => {
       proxy.$refs.dialogForm.validate(async (valid) => {
         if (valid) {
-          let params = toRaw(userForm); // 将双向绑定的对象变成普通的对象
-          params.userEmail += "@outlook.com";
-          params.action = action.value;
-          let res = await proxy.$api.userSubmit(params);
-          if (res) {
-            showModal.value = false;
-            if (action.value == "add") {
-              proxy.$message.success("新增用户成功");
-            } else {
-              proxy.$message.success("编辑用户成功");
-            }
-
-            handleReset("dialogForm");
-            getUserList();
-          }
+          try {
+            await proxy.$api.ApplyListOperate({
+              ...leaveForm,
+              action: action.value,
+            });
+            handleClose();
+            getApplyList();
+            proxy.$message.success("创建成功");
+          } catch (error) {}
         }
       });
     };
 
-    // 编辑
-    const handleEdit = (row) => {
-      action.value = "edit";
-      showModal.value = true;
-      proxy.$nextTick(() => {
-        Object.assign(userForm, row);
-      });
+    const disabledDate = (time) => {
+      return time.getTime() < Date.now() - 8.64e7;
     };
 
+    watchEffect(
+      () => {
+        let { startTime, endTime } = leaveForm;
+        leaveForm.leaveTime =
+          startTime && endTime
+            ? (endTime - startTime) / (24 * 60 * 60 * 1000) + 1 + "天"
+            : "0天";
+      },
+      { immediate: false }
+    );
+
     return {
-      user,
-      userList,
+      queryForm,
+      leaveForm,
+      applyList,
       columns,
+      action,
+      showModal,
+      pager,
+      rules,
+      handleCurrentChange,
+      handleApply,
+      handleClose,
       handleQuery,
       handleReset,
-      pager,
-      handleCurrentChange,
-      handleDelete,
-      handlePatch,
-      handleSelectionChange,
-      showModal,
-      handleCreate,
-      userForm,
-      rules,
-      roleList,
-      deptList,
-      handleClose,
       handleSubmit,
-      handleEdit,
-      action,
+      disabledDate,
     };
   },
 };
