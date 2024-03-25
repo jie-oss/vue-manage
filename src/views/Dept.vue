@@ -48,7 +48,7 @@
                 size="mini"
                 type="danger"
                 @click="handleDelete(scope.row._id)"
-                v-has="'el-delete'"
+                v-has="'dept-delete'"
                 >删除</el-button
               >
             </template>

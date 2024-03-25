@@ -1,4 +1,5 @@
 import storage from "../utils/storage"
+import router from "../router"
 
 export default {
   saveUserInfo(state, userInfo) {
@@ -12,5 +13,12 @@ export default {
   saveActionList(state, actionList) {
     state.actionList = actionList
     storage.setItem('actionList', actionList)
+  },
+  saveNoticeCount(state, noticeCount) {
+    state.noticeCount = noticeCount
+    storage.setItem('noticeCount', noticeCount)
+  },
+  AddRoute(state, route) {
+    router.addRoute('home', route)
   }
 }

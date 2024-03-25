@@ -226,13 +226,13 @@ export default {
   },
   methods: {
     // 获取菜单数据
-    async getMenuList(params) {
-      const res = await this.$api.menuList(params);
+    async getMenuList() {
+      const res = await this.$api.menuList({ ...this.queryForm });
       this.menuList = res;
     },
     // 查询
     handleQuery() {
-      this.getMenuList(this.queryForm);
+      this.getMenuList();
     },
     // 重置
     handleReset(form) {

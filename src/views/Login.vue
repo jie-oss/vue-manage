@@ -75,6 +75,7 @@ export default {
           this.$api.login(this.user).then((res) => {
             this.$store.commit("saveUserInfo", res);
             this.$router.replace("/");
+            this.$store.dispatch("loadAsyncRoutes");
           });
         }
       });

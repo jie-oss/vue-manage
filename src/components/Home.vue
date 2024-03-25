@@ -29,7 +29,7 @@
           </div>
         </div>
         <div class="user-info">
-          <el-badge :is-dot="noticeCount" class="user-badge">
+          <el-badge :is-dot="noticeCount > 0 ? true : false" class="user-badge">
             <!-- <el-icon class="el-icon-bell"><bell /></el-icon> -->
             <i class="el-icon-bell"></i>
           </el-badge>
@@ -62,15 +62,21 @@
 <script>
 import Breadcrumb from "./Breadcrumb.vue";
 import TreeMenu from "./TreeMenu.vue";
+import storage from "../utils/storage";
 export default {
   components: { TreeMenu, Breadcrumb },
   data() {
     return {
       userInfo: this.$store.state.userInfo,
       isCollapse: false,
-      noticeCount: false,
+      noticeCount: 0,
       menuList: [],
     };
+  },
+  computed: {
+    noticeCount() {
+      return this.$store.state.noticeCount;
+    },
   },
   methods: {
     handleLogout(key) {
@@ -83,7 +89,7 @@ export default {
     },
     async getNoticeCount() {
       const res = await this.$api.noticeCount();
-      this.noticeCount = res ? true : false;
+      this.$store.commit("saveNoticeCount", res);
     },
     async getMenuList() {
       const { menuList, actionList } = await this.$api.permissionList();
@@ -95,6 +101,7 @@ export default {
   mounted() {
     this.getNoticeCount();
     this.getMenuList();
+    this.userInfo = storage.getItem("userInfo");
   },
 };
 </script>

@@ -35,8 +35,20 @@
         />
         <el-table-column fixed="right" label="操作" width="150">
           <template #default="scope">
-            <el-button link type="primary" size="mini">查看</el-button>
-            <el-button link type="danger" size="small">作废</el-button>
+            <el-button
+              link
+              type="primary"
+              size="mini"
+              @click="handleDetail(scope.row)"
+              >查看</el-button
+            >
+            <el-button
+              link
+              type="danger"
+              size="small"
+              @click="handleDelete(scope.row._id)"
+              >作废</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -109,6 +121,49 @@
           <el-button type="primary" @click="handleSubmit"> 确认 </el-button>
         </div>
       </template>
+    </el-dialog>
+    <el-dialog title="申请休假详情" width="50%" v-model="showDetailModal">
+      <el-steps
+        :active="detail.applyState > 2 ? 3 : 1"
+        :process-status="detail.applyState == 2 ? 'finish' : 'process'"
+        :finish-status="getstatus(detail.applyState)"
+      >
+        <el-step title="待审批"></el-step>
+        <el-step title="审批中"></el-step>
+        <el-step title="审批通过/审批拒绝"></el-step>
+      </el-steps>
+      <el-form label-width="120px" label-suffix=":">
+        <el-form-item label="休假类型">
+          <div>
+            {{ detail.applyTypeName }}
+          </div>
+        </el-form-item>
+        <el-form-item label="休假时间">
+          <div>
+            {{ detail.time }}
+          </div>
+        </el-form-item>
+        <el-form-item label="休假时长">
+          <div>
+            {{ detail.leaveTime }}
+          </div>
+        </el-form-item>
+        <el-form-item label="休假原因">
+          <div>
+            {{ detail.reasons }}
+          </div>
+        </el-form-item>
+        <el-form-item label="审批状态">
+          <div>
+            {{ detail.applyStateName }}
+          </div>
+        </el-form-item>
+        <el-form-item label="审批人">
+          <div>
+            {{ detail.curAuditUserName }}
+          </div>
+        </el-form-item>
+      </el-form>
     </el-dialog>
   </div>
 </template>
@@ -261,10 +316,8 @@ export default {
       proxy.$refs.dialogForm.validate(async (valid) => {
         if (valid) {
           try {
-            await proxy.$api.ApplyListOperate({
-              ...leaveForm,
-              action: action.value,
-            });
+            let params = { ...leaveForm, action: action.value };
+            let res = await proxy.$api.ApplyListOperate(params);
             handleClose();
             getApplyList();
             proxy.$message.success("创建成功");
@@ -287,6 +340,56 @@ export default {
       },
       { immediate: false }
     );
+    let detail = ref({});
+    let showDetailModal = ref(false);
+    // 查看
+    const handleDetail = (row) => {
+      let data = { ...row };
+      data.applyTypeName = {
+        1: "事假",
+        2: "调休",
+        3: "年假",
+      }[data.applyType];
+      data.time =
+        dayjs(data.startTime).format("YYYY-MM-DD") +
+        "到" +
+        dayjs(data.endTime).format("YYYY-MM-DD");
+
+      data.applyStateName = {
+        1: "待审批",
+        2: "审批中",
+        3: "审批拒绝",
+        4: "审批通过",
+        5: "作废",
+      }[data.applyState];
+      detail.value = data;
+      showDetailModal.value = true;
+    };
+
+    // 作废
+    const handleDelete = async (_id) => {
+      try {
+        let params = { _id, action: "delete" };
+        let res = await proxy.$api.ApplyListOperate(params);
+        proxy.$message.success("删除成功");
+        getApplyList();
+      } catch (error) {}
+    };
+
+    function getstatus(status) {
+      switch (status) {
+        case 4:
+          return "success";
+        case 5:
+          return "error";
+        case 3:
+          return "error";
+        case 1:
+          return "finish";
+        case 2:
+          return "success";
+      }
+    }
 
     return {
       queryForm,
@@ -297,6 +400,8 @@ export default {
       showModal,
       pager,
       rules,
+      detail,
+      showDetailModal,
       handleCurrentChange,
       handleApply,
       handleClose,
@@ -304,6 +409,9 @@ export default {
       handleReset,
       handleSubmit,
       disabledDate,
+      handleDetail,
+      handleDelete,
+      getstatus,
     };
   },
 };

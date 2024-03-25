@@ -83,6 +83,7 @@ const router = createRouter({
 // 动态获取路由
 async function loadAsyncRoutes() {
   let userInfo = storage.getItem('userInfo') || {}
+  console.log(userInfo.token);
   if (userInfo.token) {
     try {
       const { menuList } = await API.permissionList()
@@ -101,8 +102,6 @@ async function loadAsyncRoutes() {
 }
 
 await loadAsyncRoutes()
-
-
 
 function checkPermission(path) {
   let hasPermission = router.getRoutes().filter(route => route.path == path).length
